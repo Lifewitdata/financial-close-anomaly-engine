@@ -1,0 +1,137 @@
+{
+  "checks": {
+    "alert_journals_are_the_planted_ones": true,
+    "alert_row_count": true,
+    "all_six_rules_represented": true,
+    "close_2026-01_matches_published_figures": true,
+    "close_2026-02_matches_published_figures": true,
+    "close_2026-03_matches_published_figures": true,
+    "close_counts_are_integers_not_floats": true,
+    "close_summary_has_three_periods": true,
+    "critical_alerts_are_balance_or_orphan": true,
+    "dbt_build_has_no_errors": true,
+    "dbt_build_tally": true,
+    "dbt_node_count": true,
+    "dbt_ran_build_command": true,
+    "dim_cost_centers_grain": true,
+    "every_alert_type_fires": true,
+    "every_ledger_currency_has_a_rate": true,
+    "feed_journal_count": true,
+    "feed_row_count": true,
+    "gl_all_amounts_are_usd": true,
+    "gl_keeps_orphan_rows": true,
+    "gl_line_id_is_unique": true,
+    "gl_nets_to_the_5000_break": true,
+    "gl_orphan_rows_not_dropped": true,
+    "gl_reconciles_to_feed": true,
+    "gx_and_dbt_agree_on_duplicates": true,
+    "gx_and_dbt_agree_on_imbalanced_journals": true,
+    "gx_and_dbt_agree_on_orphan_lines": true,
+    "gx_fingerprint_matches_seeded_bytes": true,
+    "gx_structural_gate_passed": true,
+    "gx_verdict_pass": true,
+    "line_counts_sum_to_feed": true,
+    "lineage_edges_match_manifest": true,
+    "lineage_lists_every_node": true,
+    "lineage_node_count": true,
+    "only_the_planted_journal_is_unbalanced": true,
+    "planted_break_is_plus_5000": true,
+    "severity_split": true,
+    "sign_off_blocked_iff_exceptions": true,
+    "snapshot_has_one_live_version_per_key": true
+  },
+  "metrics": {
+    "anomaly_alerts": {
+      "by_severity": {
+        "CRITICAL": 3,
+        "HIGH": 10,
+        "MEDIUM": 1
+      },
+      "by_type": {
+        "AMOUNT_OUTLIER_3SIGMA": 3,
+        "MANUAL_WEEKEND_ROUND_DOLLAR": 3,
+        "ORPHAN_ACCOUNT": 1,
+        "PERIOD_END_MANUAL_LARGE": 1,
+        "POSSIBLE_DUPLICATE": 4,
+        "UNBALANCED_JOURNAL": 2
+      },
+      "journals": [
+        "JE9001",
+        "JE9002",
+        "JE9003",
+        "JE9004",
+        "JE9005",
+        "JE9006",
+        "JE9007"
+      ],
+      "rows": 14
+    },
+    "dbt_run": {
+      "command": "build",
+      "tally": {
+        "pass": 26,
+        "success": 13,
+        "warn": 2
+      }
+    },
+    "dimensions": {
+      "cost_centre_versions_in_history": 5,
+      "cost_centres_current": 5
+    },
+    "feed": {
+      "journals": 132,
+      "rows": 264
+    },
+    "general_ledger": {
+      "distinct_line_ids": 264,
+      "net_signed_amount_usd": 5000.0,
+      "rows": 264
+    },
+    "gx_gate": {
+      "control_exceptions": {
+        "Duplicate journal line on the same date": 4,
+        "FC-01 journal imbalance outside +/- 0.01": 1,
+        "FC-02 orphan account_id not in chart of accounts": 1
+      },
+      "structural_expectations": 13,
+      "verdict": "PASS"
+    },
+    "lineage": {
+      "edges": 13,
+      "nodes": 13
+    },
+    "monthly_close": {
+      "2026-01": {
+        "credits": 1024196.02,
+        "debits": 1024196.02,
+        "journals": 39,
+        "lines": 78,
+        "manual": 0,
+        "orphans": 0,
+        "status": "READY FOR SIGN-OFF",
+        "unbalanced": 0
+      },
+      "2026-02": {
+        "credits": 1008814.02,
+        "debits": 1008814.02,
+        "journals": 42,
+        "lines": 84,
+        "manual": 0,
+        "orphans": 0,
+        "status": "READY FOR SIGN-OFF",
+        "unbalanced": 0
+      },
+      "2026-03": {
+        "credits": 1754359.41,
+        "debits": 1759359.41,
+        "journals": 51,
+        "lines": 102,
+        "manual": 10,
+        "orphans": 1,
+        "status": "BLOCKED - EXCEPTIONS OPEN",
+        "unbalanced": 1
+      }
+    }
+  },
+  "passed": true
+}

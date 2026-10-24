@@ -1,0 +1,219 @@
+{
+  "business_controls": {
+    "drift": {},
+    "exceptions_found": {
+      "Duplicate journal line on the same date": 4,
+      "FC-01 journal imbalance outside +/- 0.01": 1,
+      "FC-02 orphan account_id not in chart of accounts": 1
+    },
+    "expectations": [
+      {
+        "expectation": "expect_column_values_to_be_in_set",
+        "on": {
+          "column": "account_id",
+          "value_set": [
+            "1000",
+            "1010",
+            "1020",
+            "2000",
+            "2010",
+            "3000",
+            "4000",
+            "4010",
+            "5000",
+            "5010",
+            "5020",
+            "5030",
+            "5040"
+          ]
+        },
+        "rows_evaluated": 264,
+        "success": false,
+        "unexpected_rows": 1
+      },
+      {
+        "expectation": "expect_compound_columns_to_be_unique",
+        "on": {
+          "column_list": [
+            "transaction_date",
+            "account_id",
+            "abs_signed_amount_usd",
+            "description"
+          ],
+          "ignore_row_if": "any_value_is_missing"
+        },
+        "rows_evaluated": 264,
+        "success": false,
+        "unexpected_rows": 4
+      },
+      {
+        "expectation": "expect_column_values_to_be_between",
+        "on": {
+          "column": "imbalance",
+          "max_value": 0.01,
+          "min_value": -0.01
+        },
+        "rows_evaluated": 132,
+        "success": false,
+        "unexpected_rows": 1
+      }
+    ],
+    "expected_exceptions": {
+      "Duplicate journal line on the same date": 4,
+      "FC-01 journal imbalance outside +/- 0.01": 1,
+      "FC-02 orphan account_id not in chart of accounts": 1
+    },
+    "note": "Failures here are the planted anomalies firing, which is the demo."
+  },
+  "chart_of_accounts_sha256": "09291cbba57ad386bff8fac7d413abc7670484e898331c1d40a0ce7d34498d02",
+  "close_window": [
+    "2026-01-01",
+    "2026-03-31"
+  ],
+  "feed_file": "seeds/raw_transactions.csv",
+  "feed_sha256": "426ad9b012694a56aead985f02d62ff9a87a485beb404a31a2de03a7c526c28d",
+  "fx_rates_sha256": "03af4c0d00add8150ceeea96845e67232de564eb0ff6fbc3e2d3add2b1f26be5",
+  "journals_in_feed": 132,
+  "rows_in_feed": 264,
+  "structural_gate": {
+    "expectations": [
+      {
+        "expectation": "expect_table_row_count_to_be_between",
+        "on": {
+          "max_value": 1000000,
+          "min_value": 1
+        },
+        "rows_evaluated": 0,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "line_id"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_be_unique",
+        "on": {
+          "column": "line_id"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "journal_id"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "transaction_date"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_be_between",
+        "on": {
+          "column": "transaction_date",
+          "max_value": "2026-03-31 00:00:00",
+          "min_value": "2026-01-01 00:00:00"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "debit_amount"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_be_between",
+        "on": {
+          "column": "debit_amount",
+          "min_value": 0.0
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "credit_amount"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_be_between",
+        "on": {
+          "column": "credit_amount",
+          "min_value": 0.0
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_be_in_set",
+        "on": {
+          "column": "currency",
+          "value_set": [
+            "USD",
+            "EUR",
+            "GBP",
+            "INR"
+          ]
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "cost_center_id"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      },
+      {
+        "expectation": "expect_column_values_to_not_be_null",
+        "on": {
+          "column": "source_system"
+        },
+        "rows_evaluated": 264,
+        "success": true,
+        "unexpected_rows": 0
+      }
+    ],
+    "statistics": {
+      "evaluated_expectations": 13,
+      "success_percent": 100.0,
+      "successful_expectations": 13,
+      "unsuccessful_expectations": 0
+    },
+    "success": true,
+    "suite": "journal_lines_structural_gate"
+  },
+  "verdict": "PASS"
+}

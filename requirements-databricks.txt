@@ -1,0 +1,8 @@
+# Extra dependencies for the Databricks / Delta Lake target only.
+# The verified build in this repo runs on DuckDB with identical model SQL, so these
+# are NOT needed to reproduce it - and NOT installed in CI.
+# Requires the databricks-sql-connector session that dbt-databricks opens against a
+# SQL warehouse; see README "Running on Databricks".
+dbt-databricks>=1.8,<2.0
+pyspark>=3.5
+delta-spark>=3.2

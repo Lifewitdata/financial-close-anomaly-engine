@@ -1,0 +1,198 @@
+{
+  "incremental_merge": {
+    "checks": {
+      "closed_periods_not_rewritten": true,
+      "initial_load_is_264_rows": true,
+      "line_id_stays_unique_throughout": true,
+      "merge_inserted_new_lines": true,
+      "merge_updated_in_place_no_duplicate": true,
+      "new_journal_lines_in_target": true,
+      "open_period_was_remerged": true,
+      "rerun_does_not_duplicate_rows": true,
+      "updated_amount_is_1750": true
+    },
+    "closed_months_frozen_across_rerun": {
+      "2026-01-01 00:00:00": true,
+      "2026-02-01 00:00:00": true
+    },
+    "materialization": "incremental (merge on line_id)",
+    "model": "main_gold.fct_general_ledger",
+    "passed": true,
+    "phases": [
+      {
+        "by_month": [
+          {
+            "fiscal_month": "2026-01-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 78
+          },
+          {
+            "fiscal_month": "2026-02-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 84
+          },
+          {
+            "fiscal_month": "2026-03-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 102
+          }
+        ],
+        "distinct_line_ids": 264,
+        "expected": "full refresh of 264 lines",
+        "phase": "1_initial_load",
+        "row_count": 264
+      },
+      {
+        "by_month": [
+          {
+            "fiscal_month": "2026-01-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 78
+          },
+          {
+            "fiscal_month": "2026-02-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 84
+          },
+          {
+            "fiscal_month": "2026-03-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:12:09.951420+05:30",
+            "rows": 102
+          }
+        ],
+        "distinct_line_ids": 264,
+        "expected": "open period re-merged only",
+        "phase": "2_rerun_no_new_data",
+        "row_count": 264
+      },
+      {
+        "april_debits_usd": 1000.0,
+        "by_month": [
+          {
+            "fiscal_month": "2026-01-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 78
+          },
+          {
+            "fiscal_month": "2026-02-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 84
+          },
+          {
+            "fiscal_month": "2026-03-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:12:33.215005+05:30",
+            "rows": 102
+          },
+          {
+            "fiscal_month": "2026-04-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:12:33.215005+05:30",
+            "rows": 2
+          }
+        ],
+        "distinct_line_ids": 266,
+        "expected": "2 new lines inserted by the merge, older rows untouched",
+        "new_journal_lines_present": 2,
+        "phase": "3_new_open_period_batch",
+        "row_count": 266
+      },
+      {
+        "by_month": [
+          {
+            "fiscal_month": "2026-01-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 78
+          },
+          {
+            "fiscal_month": "2026-02-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:11:57.151223+05:30",
+            "rows": 84
+          },
+          {
+            "fiscal_month": "2026-03-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:12:33.215005+05:30",
+            "rows": 102
+          },
+          {
+            "fiscal_month": "2026-04-01 00:00:00",
+            "max_loaded_at": "2026-10-24 06:12:57.207420+05:30",
+            "rows": 2
+          }
+        ],
+        "distinct_line_ids": 266,
+        "expected": "same line_id updated in place, no duplicate row",
+        "je9100_1_debit_amount_usd": 1750.0,
+        "phase": "4_correction_to_open_period",
+        "row_count": 266
+      }
+    ]
+  },
+  "scd2_snapshot": {
+    "active_versions_after_phase2": 5,
+    "checks": {
+      "change_creates_a_new_version": true,
+      "exactly_one_active_version_per_key": true,
+      "first_snapshot_seeds_current_state": true,
+      "history_is_queryable_as_of_a_date": true,
+      "superseded_versions_are_closed": true,
+      "unchanged_reload_adds_no_history": true
+    },
+    "evidence_file": "reports/scd2_history.csv",
+    "history_rows": [
+      [
+        "CC100",
+        "Engineering",
+        "APAC",
+        "2026-10-24 06:13:12.558277",
+        "ACTIVE"
+      ],
+      [
+        "CC200",
+        "Sales",
+        "North America",
+        "2026-10-24 06:13:12.558277",
+        "2026-10-24 06:13:36.519758"
+      ],
+      [
+        "CC200",
+        "Sales",
+        "EMEA",
+        "2026-10-24 06:13:36.519758",
+        "ACTIVE"
+      ],
+      [
+        "CC300",
+        "Marketing",
+        "North America",
+        "2026-10-24 06:13:12.558277",
+        "2026-10-24 06:13:36.519758"
+      ],
+      [
+        "CC300",
+        "Demand Marketing",
+        "North America",
+        "2026-10-24 06:13:36.519758",
+        "ACTIVE"
+      ],
+      [
+        "CC400",
+        "G&A",
+        "APAC",
+        "2026-10-24 06:13:12.558277",
+        "ACTIVE"
+      ],
+      [
+        "CC500",
+        "Operations",
+        "EMEA",
+        "2026-10-24 06:13:12.558277",
+        "ACTIVE"
+      ]
+    ],
+    "passed": true,
+    "rows_after_phase1_unchanged_feed": 5,
+    "rows_after_phase2_org_change": 7,
+    "rows_after_phase3_identical_reload": 7,
+    "snapshot": "main_gold_scd.dim_cost_centers_history",
+    "strategy": "check (cost_center_name, region)"
+  }
+}
