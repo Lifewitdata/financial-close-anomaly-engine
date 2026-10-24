@@ -1,5 +1,14 @@
+# dbt build output and local warehouse - reproducible with `dbt build --profiles-dir .`
 target/
 dbt_packages/
+logs/
 financial_close.duckdb
+.user.yml
+
+# Python / tooling
+.venv/
 __pycache__/
+.pytest_cache/
 .streamlit/
+.streamlit_server.log
+.chrome-profile/

@@ -1,7 +1,9 @@
 -- Bronze: 1:1 with source, only renaming / casting / trimming. No business logic here.
 -- Audit rule: if Finance asks "what did ERP send us?", this model is the answer.
+-- The erp() macro below resolves to the Delta Bronze source table on Databricks and to
+-- the mirrored seed locally - the casting is identical either way.
 with source as (
-    select * from {{ ref('raw_transactions') }}
+    select * from {{ erp('raw_transactions') }}
 )
 select
     cast(line_id as varchar)            as line_id,

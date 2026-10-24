@@ -1,11 +1,10 @@
 -- Silver: enriched journal lines. Business logic lives here, once.
--- - FX conversion to USD (reporting currency)
+-- - FX conversion to USD through the convert_to_usd() macro + the versioned fx_rates seed
 -- - Signed amount: debits positive, credits negative (trial-balance convention)
 -- - Fiscal period, weekend flag, manual-entry flag, round-dollar flag (anomaly signals)
 -- - Orphan flag instead of dropping rows: auditors must SEE bad rows, not lose them.
 with tx as (select * from {{ ref('stg_erp__transactions') }}),
-accounts as (select * from {{ ref('stg_erp__accounts') }}),
-fx as (select * from {{ ref('fx_rates') }})
+accounts as (select * from {{ ref('stg_erp__accounts') }})
 select
     t.line_id,
     t.journal_id,
@@ -20,10 +19,10 @@ select
     t.debit_amount,
     t.credit_amount,
     t.currency_code,
-    coalesce(fx.rate_to_usd, 1.0) as fx_rate_to_usd,
-    round(t.debit_amount * coalesce(fx.rate_to_usd,1.0), 2) as debit_amount_usd,
-    round(t.credit_amount * coalesce(fx.rate_to_usd,1.0), 2) as credit_amount_usd,
-    round((t.debit_amount - t.credit_amount) * coalesce(fx.rate_to_usd,1.0), 2) as signed_amount_usd,
+    {{ fx_rate() }} as fx_rate_to_usd,
+    {{ convert_to_usd('t.debit_amount') }} as debit_amount_usd,
+    {{ convert_to_usd('t.credit_amount') }} as credit_amount_usd,
+    round((t.debit_amount - t.credit_amount) * {{ fx_rate() }}, 2) as signed_amount_usd,
     t.description,
     t.created_by,
     t.source_system,
@@ -34,4 +33,4 @@ select
     t._loaded_at
 from tx t
 left join accounts a on t.account_id = a.account_id
-left join fx on fx.currency = t.currency_code
+left join {{ ref('fx_rates') }} fx on fx.currency = t.currency_code

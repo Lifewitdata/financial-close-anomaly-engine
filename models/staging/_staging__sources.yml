@@ -1,9 +1,30 @@
 version: 2
+
+# The ERP feed as it exists in Databricks prod: external Delta tables landing in
+# finance_catalog.bronze. The DuckDB dev target never resolves this source -
+# macros/erp_relation.sql swaps it for the mirrored seeds in seeds/, so the local
+# build needs no cloud account. `dbt build --target databricks` is the branch that
+# reads these tables; that branch is compiled and dialect-checked here but has not
+# been executed against a live workspace (see README "Honest limits").
 sources:
   - name: erp
-    description: "Raw ERP journal feed (mirrored as dbt seeds for local dev; Delta table in Databricks prod)"
+    description: "Raw ERP journal feed. One row per journal line; a journal balances only when sum(debits)=sum(credits)."
+    database: finance_catalog
+    schema: bronze
+    loader: "Databricks SQL connector / Delta external tables"
     tables:
       - name: raw_transactions
-        description: "One row per journal line. A journal balances only when sum(debits)=sum(credits)."
+        description: "Journal lines as ERP exported them. No cleansing, no business logic."
+        columns:
+          - name: line_id
+            description: "Natural key of a journal line. Stable across reloads - the merge key for fct_general_ledger."
       - name: raw_accounts
         description: "Chart of accounts master."
+        columns:
+          - name: account_id
+            description: "Natural key. A journal line whose account_id is absent here is an ORPHAN_ACCOUNT alert, never a dropped row."
+      - name: raw_cost_centers
+        description: "Cost centre master. Attributes change over time, so snapshots/ keeps SCD Type 2 history."
+        columns:
+          - name: cost_center_id
+            description: "Natural key of the cost centre dimension."

@@ -1,0 +1,11 @@
+# Line endings are pinned, not guessed. scripts/verify_close.py compares the sha256 of
+# the seed CSVs against the fingerprint recorded in reports/gx_validation.json, so a
+# CRLF checkout on one machine and LF on another would look like data drift.
+* text=auto eol=lf
+*.csv text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.png binary
+*.duckdb binary

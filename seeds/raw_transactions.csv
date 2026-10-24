@@ -257,8 +257,8 @@ JE9003,JE9003-1,2026-03-15,5020,15000,0,USD,CC300,Campaign invoice - duplicate,a
 JE9003,JE9003-2,2026-03-15,2000,0,15000,USD,CC300,Campaign invoice - duplicate,a.patel,ERP
 JE9004,JE9004-1,2026-03-15,5020,15000,0,USD,CC300,Campaign invoice - duplicate,a.patel,ERP
 JE9004,JE9004-2,2026-03-15,2000,0,15000,USD,CC300,Campaign invoice - duplicate,a.patel,ERP
-JE9005,JE9005-1,2026-03-29,5030,50000,0,USD,CC100,Round-dollar manual entry - Saturday,j.chen,MANUAL
-JE9005,JE9005-2,2026-03-29,2000,0,50000,USD,CC100,Round-dollar manual entry - Saturday,j.chen,MANUAL
+JE9005,JE9005-1,2026-03-29,5030,50000,0,USD,CC100,Round-dollar manual entry - Sunday,j.chen,MANUAL
+JE9005,JE9005-2,2026-03-29,2000,0,50000,USD,CC100,Round-dollar manual entry - Sunday,j.chen,MANUAL
 JE9006,JE9006-1,2026-03-30,5020,485000,0,USD,CC300,Unusual large marketing accrual,a.patel,MANUAL
 JE9006,JE9006-2,2026-03-30,2010,0,485000,USD,CC300,Unusual large marketing accrual,a.patel,MANUAL
 JE9007,JE9007-1,2026-03-31,4000,0,220000,USD,CC200,Late period-end revenue entry,s.khan,MANUAL

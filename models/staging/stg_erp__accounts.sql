@@ -1,5 +1,5 @@
 -- Bronze: chart of accounts, cleaned only.
-with source as (select * from {{ ref('raw_accounts') }})
+with source as (select * from {{ erp('raw_accounts') }})
 select
     cast(account_id as varchar)         as account_id,
     trim(cast(account_name as varchar)) as account_name,

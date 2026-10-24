@@ -1,11 +1,13 @@
 financial_close_anomaly_engine:
   target: dev
   outputs:
-    dev:  # Local DuckDB mirror - lets anyone run dbt build without a warehouse
+    dev:  # Local DuckDB mirror - lets anyone run dbt build without a warehouse.
       type: duckdb
-      path: financial_close.duckdb
+      # Overridable so the incremental / SCD2 proof scripts can use an isolated
+      # warehouse file and never disturb the main build artefact.
+      path: "{{ env_var('FINANCIAL_CLOSE_DUCKDB', 'financial_close.duckdb') }}"
       schema: main
-    databricks:  # Production target - Databricks / Delta Lake
+    databricks:  # Production target - Databricks / Delta Lake.
       type: databricks
       catalog: finance_catalog
       schema: finance_gold

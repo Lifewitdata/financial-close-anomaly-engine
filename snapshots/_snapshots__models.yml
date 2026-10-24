@@ -1,0 +1,21 @@
+version: 2
+
+snapshots:
+  - name: snp_cost_centers
+    description: >
+      SCD Type 2 history of the cost centre master, materialised by dbt as
+      gold_scd.dim_cost_centers_history. Grain: cost centre x version. dbt_valid_to is
+      null for the version that is currently active. A new version is written only when
+      cost_center_name or region actually changes, so reloading an unchanged feed does
+      not invent history.
+    columns:
+      - name: cost_center_id
+        description: "Natural key. Not unique on its own - the grain is cost_center_id x version."
+        tests:
+          - unique_current_version
+      - name: region
+        description: "Region the cost centre rolled up to for that version."
+      - name: dbt_valid_from
+        description: "Timestamp this version became the version of record."
+      - name: dbt_valid_to
+        description: "Timestamp this version was superseded. Null means currently active."
