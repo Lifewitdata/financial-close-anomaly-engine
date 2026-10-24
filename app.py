@@ -1,80 +1,191 @@
 """
-Streamlit - Month-End Close Monitoring Dashboard
-Finance stakeholders see: close readiness, reconciliation breaks, and anomaly alerts.
-Data source order: DuckDB gold tables (after `dbt build`) -> fallback to data/raw_transactions.csv
-so the dashboard demos even before dbt is run.
-Run: streamlit run app.py
+Streamlit - month-end close monitoring dashboard.
+
+Every number on this page comes from a dbt-built Gold table. The dashboard deliberately
+does not re-implement a control in Python: a dashboard that quietly disagrees with the
+warehouse is worse than one that tells you to run the pipeline. So when the Gold tables
+are not built yet, the app says so and shows the raw feed instead of approximating.
+
+Run after `dbt build --profiles-dir .`:
+    streamlit run app.py
 """
 import os
+
 import pandas as pd
 import streamlit as st
 
 st.set_page_config(page_title="Financial Close & Anomaly Detection", layout="wide")
-st.title("Automated Financial Close & Anomaly Detection Engine")
-st.caption("dbt + Databricks (prod) / DuckDB (local)  •  Bronze → Silver → Gold  •  SOX controls FC-01 / FC-02")
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-DB = os.path.join(BASE, "financial_close.duckdb")
+DB = os.environ.get("FINANCIAL_CLOSE_DUCKDB", os.path.join(BASE, "financial_close.duckdb"))
+GOLD = "main_gold"
+SCD = "main_gold_scd"
 
-def load_from_duckdb():
+st.title("Automated Financial Close & Anomaly Detection Engine")
+st.caption(
+    "dbt + Databricks (prod) / DuckDB (local)  |  Bronze -> Silver -> Gold  |  "
+    "SOX controls FC-01 to FC-05"
+)
+
+
+def read(sql):
+    """Run a query against the built warehouse; return None if that object is not there."""
     import duckdb
+
+    if not os.path.exists(DB):
+        return None
     con = duckdb.connect(DB, read_only=True)
-    close = con.execute("select * from main_gold.fct_monthly_close_summary order by fiscal_month").df()
-    alerts = con.execute("select * from main_gold.fct_anomaly_alerts order by severity, transaction_date").df()
-    gl = con.execute("select * from main_gold.fct_general_ledger order by transaction_date").df()
-    con.close()
-    return close, alerts, gl
-
-def load_from_csv():
-    df = pd.read_csv(os.path.join(BASE, "data", "raw_transactions.csv"), parse_dates=["transaction_date"])
-    df["fiscal_month"] = df["transaction_date"].dt.to_period("M").dt.to_timestamp()
-    rec = df.groupby("journal_id").agg(total_d=("debit_amount","sum"), total_c=("credit_amount","sum")).reset_index()
-    rec["is_unbalanced"] = (rec["total_d"]-rec["total_c"]).abs() > 0.01
-    close = df.groupby("fiscal_month").size().reset_index(name="line_count")
-    close["journal_count"] = df.groupby("fiscal_month")["journal_id"].nunique().values
-    close["total_debits_usd"] = df.groupby("fiscal_month")["debit_amount"].sum().values
-    close["total_credits_usd"] = df.groupby("fiscal_month")["credit_amount"].sum().values
-    close["unbalanced_journal_count"] = rec.merge(df[["journal_id","fiscal_month"]].drop_duplicates(), on="journal_id").groupby("fiscal_month")["is_unbalanced"].sum().values
-    close["orphan_journal_count"] = 1 if "9999" in df["account_id"].astype(str).values else 0
-    close["manual_line_count"] = df[df["source_system"]=="MANUAL"].groupby("fiscal_month").size().reindex(close["fiscal_month"]).fillna(0).values
-    close["close_status"] = close.apply(lambda r: "READY FOR SIGN-OFF" if r["unbalanced_journal_count"]==0 else "BLOCKED - EXCEPTIONS OPEN", axis=1)
-    alerts = pd.DataFrame({"note": ["Run `dbt build` to generate the full anomaly alerts table (fct_anomaly_alerts). CSV fallback shows close summary only."]})
-    return close, alerts, df
-
-if os.path.exists(DB):
     try:
-        close_df, alerts_df, gl_df = load_from_duckdb()
-        st.success("Connected to DuckDB gold layer (dbt-built tables).")
-    except Exception as e:
-        st.warning(f"DuckDB found but gold tables not readable ({e}). Falling back to CSV.")
-        close_df, alerts_df, gl_df = load_from_csv()
-else:
-    st.info("No DuckDB file yet - showing CSV fallback. Run `dbt seed && dbt build` for the full gold layer.")
-    close_df, alerts_df, gl_df = load_from_csv()
+        return con.execute(sql).df()
+    except Exception:
+        return None
+    finally:
+        con.close()
 
-# KPI row - latest month
-latest = close_df.iloc[-1]
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Latest period", pd.to_datetime(latest["fiscal_month"]).strftime("%Y-%m"))
-c2.metric("Journals", int(latest["journal_count"]))
-c3.metric("Unbalanced journals", int(latest["unbalanced_journal_count"]))
-c4.metric("Close status", str(latest["close_status"]))
 
-st.subheader("Close progress by month (SOX FC-01 evidence)")
-st.dataframe(close_df, use_container_width=True)
-st.bar_chart(close_df.set_index(pd.to_datetime(close_df["fiscal_month"]).dt.strftime("%Y-%m"))[["total_debits_usd","total_credits_usd"]])
+gl = read(f"select * from {GOLD}.fct_general_ledger")
+close = read(f"select * from {GOLD}.fct_monthly_close_summary order by fiscal_month")
+alerts = read(f"select * from {GOLD}.fct_anomaly_alerts order by severity, transaction_date, line_id")
+history = read(f"select * from {SCD}.dim_cost_centers_history")
 
+if gl is None or close is None:
+    st.warning(
+        "The Gold layer is not built yet, so no control results can be shown.\n\n"
+        "```\ndbt build --profiles-dir .\n```"
+    )
+    feed = pd.read_csv(os.path.join(BASE, "seeds", "raw_transactions.csv"))
+    with st.expander(f"Raw ERP feed as dbt sees it ({len(feed)} journal lines)", expanded=True):
+        st.dataframe(feed, width="stretch")
+        st.metric("Journal lines", len(feed))
+        st.metric("Journals", int(feed["journal_id"].nunique()))
+    st.stop()
+
+# ---------------------------------------------------------------- KPI row
+periods = pd.to_datetime(close["fiscal_month"]).dt.strftime("%Y-%m").tolist()
+choice = st.sidebar.selectbox("Close period", periods, index=len(periods) - 1)
+row = close[pd.to_datetime(close["fiscal_month"]).dt.strftime("%Y-%m") == choice].iloc[0]
+
+st.subheader(f"{choice} close position")
+k1, k2, k3, k4, k5 = st.columns(5)
+k1.metric("Journals", int(row["journal_count"]))
+k2.metric("Unbalanced journals", int(row["unbalanced_journal_count"]))
+k3.metric("Lines on orphan accounts", int(row["orphan_journal_count"]))
+k4.metric("Manual lines", int(row["manual_line_count"]))
+k5.metric(
+    "Debits vs credits",
+    f"${row['total_debits_usd']:,.2f}",
+    help="Difference from credits is the unresolved break; it must be $0.00 to sign off.",
+)
+st.markdown(
+    ":red[**BLOCKED - EXCEPTIONS OPEN**]  "
+    if row["close_status"] != "READY FOR SIGN-OFF"
+    else ":green[**READY FOR SIGN-OFF**]  "
+)
+if int(row["unbalanced_journal_count"]) or int(row["orphan_journal_count"]):
+    st.caption(
+        f"Ledger break this period: "
+        f"${row['total_debits_usd'] - row['total_credits_usd']:,.2f}"
+    )
+
+# ---------------------------------------------------------------- close progress
+st.subheader("Close progress by period (FC-01 / FC-02 evidence)")
+st.dataframe(close, width="stretch")
+chart = close.assign(
+    period=pd.to_datetime(close["fiscal_month"]).dt.strftime("%Y-%m")
+).set_index("period")[["total_debits_usd", "total_credits_usd"]]
+st.bar_chart(chart)
+
+# ---------------------------------------------------------------- anomaly alerts
 st.subheader("Anomaly alerts - review before sign-off")
-if "anomaly_type" in alerts_df.columns:
-    sev = st.multiselect("Severity", sorted(alerts_df["severity"].unique()), default=sorted(alerts_df["severity"].unique()))
-    st.dataframe(alerts_df[alerts_df["severity"].isin(sev)], use_container_width=True)
-    st.bar_chart(alerts_df["anomaly_type"].value_counts())
+if alerts is None or len(alerts) == 0:
+    st.success("No open anomaly alerts.")
 else:
-    st.dataframe(alerts_df, use_container_width=True)
+    severities = sorted(alerts["severity"].unique())
+    picked = st.multiselect("Severity", severities, default=severities)
+    shown = alerts[alerts["severity"].isin(picked)]
+    st.dataframe(
+        shown[
+            [
+                "severity",
+                "anomaly_type",
+                "journal_id",
+                "line_id",
+                "transaction_date",
+                "account_id",
+                "account_name",
+                "signed_amount_usd",
+                "created_by",
+                "description",
+                "recommended_action",
+            ]
+        ],
+        width="stretch",
+    )
+    st.bar_chart(alerts["anomaly_type"].value_counts())
 
-st.subheader("How to clear an exception")
-st.markdown("""
-1. Open the alert's `journal_id` in `fct_general_ledger` and trace it to the ERP source line.
-2. Fix at source (never edit Gold tables directly) and re-run `dbt build`.
-3. If the entry is legitimate, attach evidence and waive it in the close checklist - the alert history stays for auditors.
-""")
+# ---------------------------------------------------------------- drill-down
+st.subheader("Trace an exception to source")
+if alerts is not None and len(alerts):
+    journal = st.selectbox("Journal with an alert", sorted(alerts["journal_id"].unique()))
+else:
+    journal = st.selectbox("Journal", sorted(gl["journal_id"].unique())[:50])
+lines = gl[gl["journal_id"] == journal]
+st.dataframe(
+    lines[
+        [
+            "line_id",
+            "transaction_date",
+            "account_id",
+            "account_name",
+            "currency_code",
+            "fx_rate_to_usd",
+            "debit_amount_usd",
+            "credit_amount_usd",
+            "signed_amount_usd",
+            "source_system",
+            "created_by",
+            "is_orphan_account",
+        ]
+    ],
+    width="stretch",
+)
+st.caption(
+    f"Journal {journal} nets to ${lines['signed_amount_usd'].sum():,.2f}. "
+    "Every column above traces back to one seed file in two hops - "
+    "`seeds/raw_transactions.csv` -> `stg_erp__transactions` -> this table."
+)
+
+# ---------------------------------------------------------------- SCD2 history
+if history is not None:
+    st.subheader("Cost centre history (SCD Type 2)")
+    valid_from = pd.to_datetime(history["dbt_valid_from"])
+    valid_to = pd.to_datetime(history["dbt_valid_to"])
+    # "As of" means end of day: a version created at 09:00 on the 31st was what
+    # Finance reported against that month, so the cutoff is the 31st + 1 day.
+    cutoff = pd.Timestamp(
+        st.date_input("As of", value=valid_from.max().normalize().date())
+    ) + pd.Timedelta(days=1)
+    active = history[(valid_from < cutoff) & (valid_to.fillna(cutoff) >= cutoff)]
+    st.dataframe(
+        active[["cost_center_id", "cost_center_name", "region", "dbt_valid_from", "dbt_valid_to"]],
+        width="stretch",
+        hide_index=True,
+    )
+    st.caption(
+        "A GL line joined on `cost_center_id` and its own `transaction_date` resolves to the "
+        "version Finance reported against at the time, not to today's org chart."
+    )
+
+with st.expander("How to clear an exception"):
+    st.markdown(
+        """
+        1. Open the alert's `journal_id` in `fct_general_ledger` and trace it to the ERP source line.
+        2. Fix at source (never edit Gold tables directly) and re-run `dbt build`.
+        3. If the entry is legitimate, attach evidence and waive it in the close checklist -
+           the alert history stays for auditors.
+
+        Signed-off evidence produced by this repo: `target/manifest.json` (dbt run graph),
+        `reports/gx_validation.json` (pre-dbt gate), `reports/close_metrics.json` (every
+        published figure), `reports/incremental_and_scd2_proof.json` (materialisation proof).
+        """
+    )
