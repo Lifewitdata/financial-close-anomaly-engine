@@ -1,0 +1,4 @@
+# Only needed to regenerate docs/dashboard.png - the dashboard tests in tests/python
+# run head-free through Streamlit's AppTest and need none of this.
+-r requirements.txt
+playwright>=1.44

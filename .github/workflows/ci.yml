@@ -1,0 +1,70 @@
+name: close pipeline
+
+# What this proves on every push: the warehouse builds from a clean checkout, the
+# five SOX controls report what the README says they report, Great Expectations
+# agrees with dbt, the committed lineage matches the models, the dashboard renders
+# the Gold tables, and the incremental + SCD Type 2 patterns actually merge/version.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install the local stack (dbt + DuckDB + GX + Streamlit + pytest)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: dbt build (seeds -> bronze -> silver -> gold -> tests)
+        # The two WARNs are the planted anomalies (JE9001 imbalance, JE9002 orphan
+        # account). They are the controls firing, not a broken build, so the audit
+        # tests are severity: warn and dbt still exits 0 by design.
+        run: dbt build --profiles-dir . --target dev
+
+      - name: Great Expectations suite (shift-left gate on the raw feed)
+        run: python expectations/gx_suite_journal_lines.py
+
+      - name: Regenerate lineage and fail if the committed LINEAGE.md is stale
+        run: |
+          python scripts/build_lineage.py
+          git diff --exit-code LINEAGE.md || {
+            echo "::error::LINEAGE.md does not match target/manifest.json - run python scripts/build_lineage.py"; exit 1; }
+
+      - name: Verify every published figure against the warehouse (39 checks)
+        run: python scripts/verify_close.py
+
+      - name: Prove incremental merge + SCD Type 2 history in a throwaway copy
+        run: python scripts/verify_prod_patterns.py
+
+      - name: Dashboard tests (Streamlit AppTest, no browser)
+        run: python -m pytest tests/python -q
+
+      - name: Build static dbt docs
+        run: dbt docs generate --static --profiles-dir .
+
+      - name: Publish the docs bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-static-docs
+          path: target/static_index.html
+          if-no-files-found: error
+
+      - name: Job summary
+        if: always()
+        run: python scripts/ci_summary.py >> "$GITHUB_STEP_SUMMARY"
