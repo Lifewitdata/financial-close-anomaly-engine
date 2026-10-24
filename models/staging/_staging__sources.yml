@@ -1,0 +1,9 @@
+version: 2
+sources:
+  - name: erp
+    description: "Raw ERP journal feed (mirrored as dbt seeds for local dev; Delta table in Databricks prod)"
+    tables:
+      - name: raw_transactions
+        description: "One row per journal line. A journal balances only when sum(debits)=sum(credits)."
+      - name: raw_accounts
+        description: "Chart of accounts master."

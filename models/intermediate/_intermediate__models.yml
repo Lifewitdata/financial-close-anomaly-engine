@@ -1,0 +1,14 @@
+version: 2
+models:
+  - name: int_journal_lines_cleaned
+    description: "Enriched journal lines in USD with anomaly signal flags. Grain: line_id."
+    columns:
+      - name: line_id
+        tests: [not_null, unique]
+      - name: signed_amount_usd
+        tests: [not_null]
+  - name: int_ledger_reconciliation
+    description: "Per-journal debit/credit reconciliation. Grain: journal_id."
+    columns:
+      - name: journal_id
+        tests: [not_null, unique]

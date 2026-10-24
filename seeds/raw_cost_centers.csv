@@ -1,0 +1,6 @@
+cost_center_id,cost_center_name,region
+CC100,Engineering,APAC
+CC200,Sales,North America
+CC300,Marketing,North America
+CC400,G&A,APAC
+CC500,Operations,EMEA

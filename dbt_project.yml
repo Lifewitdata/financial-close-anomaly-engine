@@ -1,0 +1,25 @@
+name: 'financial_close_anomaly_engine'
+version: '1.0.0'
+config-version: 2
+profile: 'financial_close_anomaly_engine'
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+clean-targets: ["target", "dbt_packages"]
+models:
+  financial_close_anomaly_engine:
+    staging:
+      +materialized: view
+      +schema: bronze
+    intermediate:
+      +materialized: view
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+seeds:
+  financial_close_anomaly_engine:
+    +schema: raw
+vars:
+  close_period_start: '2026-01-01'

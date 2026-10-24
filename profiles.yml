@@ -1,0 +1,14 @@
+financial_close_anomaly_engine:
+  target: dev
+  outputs:
+    dev:  # Local DuckDB mirror - lets anyone run dbt build without a warehouse
+      type: duckdb
+      path: financial_close.duckdb
+      schema: main
+    databricks:  # Production target - Databricks / Delta Lake
+      type: databricks
+      catalog: finance_catalog
+      schema: finance_gold
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"

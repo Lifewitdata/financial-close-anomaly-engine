@@ -1,0 +1,5 @@
+target/
+dbt_packages/
+financial_close.duckdb
+__pycache__/
+.streamlit/

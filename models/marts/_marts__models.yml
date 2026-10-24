@@ -1,0 +1,26 @@
+version: 2
+models:
+  - name: fct_general_ledger
+    description: "Gold general ledger fact. Grain: line_id. All amounts in USD. Orphan-account rows are retained and flagged (is_orphan_account) for audit visibility, not dropped."
+    columns:
+      - name: line_id
+        tests: [not_null, unique]
+  - name: fct_monthly_close_summary
+    description: "Monthly close readiness per fiscal month. SOX control FC-01 evidence."
+    columns:
+      - name: fiscal_month
+        tests: [not_null, unique]
+      - name: close_status
+        tests:
+          - accepted_values:
+              arguments: {values: ['READY FOR SIGN-OFF','BLOCKED - EXCEPTIONS OPEN']}
+  - name: dim_cost_centers
+    description: "Cost center dimension."
+    columns:
+      - name: cost_center_id
+        tests: [not_null, unique]
+  - name: fct_anomaly_alerts
+    description: "Rule + statistical anomaly alerts with severity for audit review."
+    columns:
+      - name: anomaly_type
+        tests: [not_null]

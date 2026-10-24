@@ -1,0 +1,14 @@
+account_id,account_name,account_type,financial_statement
+1000,Cash & Equivalents,Asset,Balance Sheet
+1010,Accounts Receivable,Asset,Balance Sheet
+1020,Inventory,Asset,Balance Sheet
+2000,Accounts Payable,Liability,Balance Sheet
+2010,Accrued Expenses,Liability,Balance Sheet
+3000,Common Stock,Equity,Balance Sheet
+4000,Product Revenue,Revenue,P&L
+4010,Services Revenue,Revenue,P&L
+5000,Cost of Goods Sold,Expense,P&L
+5010,Salaries & Benefits,Expense,P&L
+5020,Marketing Spend,Expense,P&L
+5030,Cloud & Software,Expense,P&L
+5040,Rent & Facilities,Expense,P&L

@@ -1,0 +1,28 @@
+version: 2
+models:
+  - name: stg_erp__transactions
+    description: "Cleaned journal lines from ERP. Grain: one row per line_id."
+    columns:
+      - name: line_id
+        tests: [not_null, unique]
+      - name: journal_id
+        tests: [not_null]
+      - name: transaction_date
+        tests: [not_null]
+      - name: debit_amount
+        tests: [not_null]
+      - name: credit_amount
+        tests: [not_null]
+      - name: currency_code
+        tests:
+          - accepted_values:
+              arguments: {values: ['USD','EUR','GBP','INR']}
+  - name: stg_erp__accounts
+    description: "Chart of accounts. Grain: one row per account_id."
+    columns:
+      - name: account_id
+        tests: [not_null, unique]
+      - name: account_type
+        tests:
+          - accepted_values:
+              arguments: {values: ['Asset','Liability','Equity','Revenue','Expense']}
