@@ -171,7 +171,7 @@ def main() -> int:
         "screenshot": "docs/dashboard.png",
         "bytes": size,
         "sha256": hashlib.sha256(png.read_bytes()).hexdigest(),
-        "duckdb": env["FINANCIAL_CLOSE_DUCKDB"],
+        "duckdb": os.path.relpath(env["FINANCIAL_CLOSE_DUCKDB"], ROOT),
         "rendered_metrics": observed["metrics"],
         "expected_text_found": EXPECTED_TEXT,
         "dataframe_rows": observed["dataframe_rows"],

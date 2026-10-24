@@ -1,10 +1,10 @@
 {
-  "served_url": "http://127.0.0.1:57528",
+  "served_url": "http://127.0.0.1:51219",
   "health_status": 200,
   "screenshot": "docs/dashboard.png",
   "bytes": 753534,
   "sha256": "36039bb3c73243ea9e6d4b547a9ba4fe06d37f2a1e1881f73c3326867299adc3",
-  "duckdb": "C:\\Users\\hp\\Documents\\Qoder\\2026-10-24\\274300f4\\financial-close-anomaly-engine\\financial_close.duckdb",
+  "duckdb": "financial_close.duckdb",
   "rendered_metrics": {
     "Journals": "51",
     "Unbalanced journals": "1",
@@ -26,5 +26,5 @@
   ],
   "content_height_px": 2979,
   "expected_metrics_matched": true,
-  "captured_at": "2026-10-24T06:03:59+0530"
+  "captured_at": "2026-10-24T06:33:12+0530"
 }
